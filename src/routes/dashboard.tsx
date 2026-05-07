@@ -1,6 +1,8 @@
 import { createFileRoute, Outlet, Link, useNavigate, useLocation, redirect } from "@tanstack/react-router";
 import { usePrivy, useLogout, useWallets } from "@privy-io/react-auth";
+import { AuthDisabledState } from "@/components/system/AuthDisabledState";
 import { getUser, buildUserFromPrivy, setUser, clearUser } from "@/lib/auth";
+import { AUTH_ENABLED } from "@/lib/runtime";
 import { resourceStore } from "@/lib/resourceStore";
 import { useEffect, useState } from "react";
 
@@ -171,6 +173,19 @@ function TopbarProfileMenu({ displayName, displayEmail, avatarInitials, onSignOu
 }
 
 function DashboardLayout() {
+  if (!AUTH_ENABLED) {
+    return (
+      <AuthDisabledState
+        title="Dashboard is disabled on this deployment"
+        description="This deployment is missing VITE_PRIVY_APP_ID, so the authenticated workspace cannot load yet. Add the variable in Vercel and redeploy to enable the dashboard."
+      />
+    );
+  }
+
+  return <DashboardLayoutWithPrivy />;
+}
+
+function DashboardLayoutWithPrivy() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 

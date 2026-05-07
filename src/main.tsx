@@ -3,15 +3,19 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { getRouter } from "./router";
+import { AUTH_ENABLED, PRIVY_APP_ID } from "./lib/runtime";
 import "./styles.css";
-
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID as string;
 
 const router = getRouter();
 
-const rootElement = document.getElementById("root")!;
-createRoot(rootElement).render(
-  <StrictMode>
+function App() {
+  const content = <RouterProvider router={router} />;
+
+  if (!AUTH_ENABLED) {
+    return content;
+  }
+
+  return (
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
@@ -27,7 +31,14 @@ createRoot(rootElement).render(
         },
       }}
     >
-      <RouterProvider router={router} />
+      {content}
     </PrivyProvider>
+  );
+}
+
+const rootElement = document.getElementById("root")!;
+createRoot(rootElement).render(
+  <StrictMode>
+    <App />
   </StrictMode>
 );

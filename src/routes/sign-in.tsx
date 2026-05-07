@@ -1,13 +1,28 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
+import { AuthDisabledState } from "@/components/system/AuthDisabledState";
 import { buildUserFromPrivy, setUser } from "@/lib/auth";
+import { AUTH_ENABLED } from "@/lib/runtime";
 
 export const Route = createFileRoute("/sign-in")({
   component: SignInPage,
 });
 
 function SignInPage() {
+  if (!AUTH_ENABLED) {
+    return (
+      <AuthDisabledState
+        title="Sign in is disabled on this deployment"
+        description="This Vercel project is missing VITE_PRIVY_APP_ID, so the login flow cannot start yet. Add the variable, redeploy, and sign in will work normally."
+      />
+    );
+  }
+
+  return <SignInPageWithPrivy />;
+}
+
+function SignInPageWithPrivy() {
   const navigate = useNavigate();
   const { ready, authenticated, user, login } = usePrivy();
 

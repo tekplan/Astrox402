@@ -1,9 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { usePrivy } from "@privy-io/react-auth";
+import { AUTH_ENABLED } from "@/lib/runtime";
 
 export function Nav() {
-  const { authenticated, ready } = usePrivy();
+  if (!AUTH_ENABLED) {
+    return <NavShell authenticated={false} ready={true} />;
+  }
 
+  return <NavWithPrivy />;
+}
+
+function NavWithPrivy() {
+  const { authenticated, ready } = usePrivy();
+  return <NavShell authenticated={authenticated} ready={ready} />;
+}
+
+function NavShell({ authenticated, ready }: { authenticated: boolean; ready: boolean }) {
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b border-border/60 backdrop-blur-xl bg-background/70">
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
