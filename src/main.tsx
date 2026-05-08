@@ -1,10 +1,8 @@
 import { Component, StrictMode, type ErrorInfo, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
-import { PrivyProvider } from "@privy-io/react-auth";
 import { AppRuntimeErrorState } from "./components/system/AppRuntimeErrorState";
 import { getRouter } from "./router";
-import { AUTH_ENABLED, PRIVY_APP_ID } from "./lib/runtime";
 import "./styles.css";
 
 const router = getRouter();
@@ -60,31 +58,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
 }
 
 function App() {
-  const content = <RouterProvider router={router} />;
-
-  if (!AUTH_ENABLED) {
-    return content;
-  }
-
-  return (
-    <PrivyProvider
-      appId={PRIVY_APP_ID}
-      config={{
-        loginMethods: ["email", "google", "github", "wallet"],
-        embeddedWallets: {
-          solana: { createOnLogin: "users-without-wallets" },
-        },
-        appearance: {
-          theme: "dark",
-          accentColor: "#22d3ee",
-          showWalletLoginFirst: false,
-          walletList: ["phantom", "solflare", "backpack"],
-        },
-      }}
-    >
-      {content}
-    </PrivyProvider>
-  );
+  return <RouterProvider router={router} />;
 }
 
 const rootElement = document.getElementById("root")!;
@@ -93,5 +67,5 @@ createRoot(rootElement).render(
     <AppErrorBoundary>
       <App />
     </AppErrorBoundary>
-  </StrictMode>
+  </StrictMode>,
 );

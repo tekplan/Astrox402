@@ -1,11 +1,6 @@
-function isPrivyError(message: string) {
-  return /privy|app id|auth/i.test(message);
-}
-
 export function AppRuntimeErrorState({ error }: { error: Error }) {
   const message = error.message?.trim() || "Unknown runtime error";
   const origin = typeof window !== "undefined" ? window.location.origin : "this deployment";
-  const privyError = isPrivyError(message);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
@@ -17,14 +12,11 @@ export function AppRuntimeErrorState({ error }: { error: Error }) {
           Runtime error
         </div>
 
-        <h1 className="text-xl font-semibold mb-2">
-          {privyError ? "Auth failed to initialize on this deployment" : "This deployment hit a runtime error"}
-        </h1>
+        <h1 className="text-xl font-semibold mb-2">This deployment hit a runtime error</h1>
 
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {privyError
-            ? "Privy rejected this deployment while the app was starting. The most common causes are an invalid app ID for this environment, or the current Vercel domain not being allowed in Privy."
-            : "The app crashed while starting in the browser. Use the details below to inspect the exact error."}
+          The app crashed while starting in the browser. Use the details below to inspect the exact
+          error.
         </p>
 
         <div className="mt-6 rounded-xl border border-border bg-background/60 p-4 space-y-3">
@@ -35,20 +27,11 @@ export function AppRuntimeErrorState({ error }: { error: Error }) {
 
           <div>
             <div className="text-[12px] font-medium text-foreground mb-2">Browser error</div>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[12px] text-amber-200">{message}</pre>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[12px] text-amber-200">
+              {message}
+            </pre>
           </div>
         </div>
-
-        {privyError ? (
-          <div className="mt-6 rounded-xl border border-border bg-background/60 p-4">
-            <div className="text-[12px] font-medium text-foreground mb-2">What to check next</div>
-            <ul className="space-y-2 text-[13px] text-muted-foreground list-disc pl-5">
-              <li>Vercel environment variable: <span className="font-mono text-foreground">VITE_PRIVY_APP_ID</span></li>
-              <li>Privy Dashboard → allowed domains includes <span className="font-mono text-foreground">{origin}</span></li>
-              <li>If you use a custom domain, allow that domain too</li>
-            </ul>
-          </div>
-        ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
           <a
@@ -56,14 +39,6 @@ export function AppRuntimeErrorState({ error }: { error: Error }) {
             className="inline-flex h-10 items-center rounded-lg bg-foreground px-4 text-[13px] font-medium text-background transition-colors hover:bg-foreground/90"
           >
             Back to home
-          </a>
-          <a
-            href="https://dashboard.privy.io/"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-10 items-center rounded-lg border border-border px-4 text-[13px] text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-          >
-            Open Privy dashboard
           </a>
         </div>
       </div>

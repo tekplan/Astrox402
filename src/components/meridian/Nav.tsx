@@ -1,18 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { usePrivy } from "@privy-io/react-auth";
-import { AUTH_ENABLED } from "@/lib/runtime";
+import { getUser } from "@/lib/auth";
 
 export function Nav() {
-  if (!AUTH_ENABLED) {
-    return <NavShell authenticated={false} ready={true} />;
-  }
-
-  return <NavWithPrivy />;
-}
-
-function NavWithPrivy() {
-  const { authenticated, ready } = usePrivy();
-  return <NavShell authenticated={authenticated} ready={ready} />;
+  return <NavShell authenticated={Boolean(getUser())} ready={true} />;
 }
 
 function NavShell({ authenticated, ready }: { authenticated: boolean; ready: boolean }) {
@@ -30,11 +20,21 @@ function NavShell({ authenticated, ready }: { authenticated: boolean; ready: boo
           </span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-[13.5px] text-muted-foreground">
-          <Link to="/" hash="protocol" className="hover:text-foreground transition-colors">Protocol</Link>
-          <Link to="/" hash="flow" className="hover:text-foreground transition-colors">How it works</Link>
-          <Link to="/" hash="usecases" className="hover:text-foreground transition-colors">Use cases</Link>
-          <Link to="/" hash="solana" className="hover:text-foreground transition-colors">Solana</Link>
-          <Link to="/docs" className="hover:text-foreground transition-colors">Docs</Link>
+          <Link to="/" hash="protocol" className="hover:text-foreground transition-colors">
+            Protocol
+          </Link>
+          <Link to="/" hash="flow" className="hover:text-foreground transition-colors">
+            How it works
+          </Link>
+          <Link to="/" hash="usecases" className="hover:text-foreground transition-colors">
+            Use cases
+          </Link>
+          <Link to="/" hash="solana" className="hover:text-foreground transition-colors">
+            Solana
+          </Link>
+          <Link to="/docs" className="hover:text-foreground transition-colors">
+            Docs
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           {ready && authenticated ? (
@@ -55,7 +55,10 @@ function NavShell({ authenticated, ready }: { authenticated: boolean; ready: boo
               Sign in
             </Link>
           )}
-          <a href="#waitlist" className="inline-flex h-9 items-center px-4 rounded-md bg-foreground text-background text-[13px] font-medium hover:bg-foreground/90 transition-colors">
+          <a
+            href="#waitlist"
+            className="inline-flex h-9 items-center px-4 rounded-md bg-foreground text-background text-[13px] font-medium hover:bg-foreground/90 transition-colors"
+          >
             Request access
           </a>
         </div>

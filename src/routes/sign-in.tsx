@@ -1,39 +1,32 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { usePrivy } from "@privy-io/react-auth";
-import { AuthDisabledState } from "@/components/system/AuthDisabledState";
-import { buildUserFromPrivy, setUser } from "@/lib/auth";
-import { AUTH_ENABLED } from "@/lib/runtime";
+import { useState } from "react";
+import { buildUserFromWallet, setUser } from "@/lib/auth";
+import { connectPhantom, getPhantomProvider } from "@/lib/wallet";
 
 export const Route = createFileRoute("/sign-in")({
   component: SignInPage,
 });
 
 function SignInPage() {
-  if (!AUTH_ENABLED) {
-    return (
-      <AuthDisabledState
-        title="Sign in is disabled on this deployment"
-        description="This Vercel project is missing VITE_PRIVY_APP_ID, so the login flow cannot start yet. Add the variable, redeploy, and sign in will work normally."
-      />
-    );
-  }
-
-  return <SignInPageWithPrivy />;
-}
-
-function SignInPageWithPrivy() {
   const navigate = useNavigate();
-  const { ready, authenticated, user, login } = usePrivy();
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const phantomInstalled = Boolean(getPhantomProvider());
 
-  useEffect(() => {
-    if (!ready) return;
-    if (authenticated && user) {
-      const localUser = buildUserFromPrivy(user as any);
-      setUser(localUser);
+  async function handleConnect() {
+    setConnecting(true);
+    setError(null);
+
+    try {
+      const address = await connectPhantom();
+      setUser(buildUserFromWallet(address));
       navigate({ to: "/dashboard" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to connect Phantom wallet");
+    } finally {
+      setConnecting(false);
     }
-  }, [ready, authenticated, user, navigate]);
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
@@ -47,59 +40,79 @@ function SignInPageWithPrivy() {
             <div className="absolute inset-1 bg-accent/80 rounded-[2px]" />
           </div>
           <span className="font-medium tracking-tight text-[15px]">Astro</span>
-          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-mono tracking-wider text-muted-foreground border border-border rounded">x402</span>
+          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-mono tracking-wider text-muted-foreground border border-border rounded">
+            x402
+          </span>
         </Link>
 
         <div className="rounded-2xl border border-border bg-surface/80 backdrop-blur-sm p-8 shadow-2xl shadow-black/40">
-          <h1 className="text-xl font-semibold mb-1">Sign in to your workspace</h1>
+          <h1 className="text-xl font-semibold mb-1">Connect Phantom</h1>
           <p className="text-sm text-muted-foreground mb-7">
-            Connect with email, Google, GitHub, or your Solana wallet.
+            Sign in with your Solana wallet. No Privy, email, or embedded wallet required.
           </p>
 
           <button
-            onClick={login}
-            disabled={!ready}
+            onClick={handleConnect}
+            disabled={connecting || !phantomInstalled}
             className="w-full h-11 rounded-lg bg-accent text-background text-[13px] font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2.5"
           >
-            {!ready ? (
+            {connecting ? (
               <>
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
-                Loading…
+                Connecting…
               </>
             ) : (
               <>
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M7.5 1a6.5 6.5 0 100 13A6.5 6.5 0 007.5 1z"/>
-                  <path d="M7.5 4v3.5l2.5 1.5"/>
-                </svg>
-                Continue
+                <span className="text-base">◎</span>
+                Connect Phantom
               </>
             )}
           </button>
 
+          {!phantomInstalled && (
+            <a
+              href="https://phantom.app/download"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex h-10 items-center justify-center rounded-lg border border-border text-[13px] text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
+              Install Phantom Wallet
+            </a>
+          )}
+
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-[12px] text-red-300">
+              {error}
+            </div>
+          )}
+
           <div className="mt-5 pt-5 border-t border-border/60">
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              {[
-                { label: "Email", icon: "✉" },
-                { label: "Google", icon: "G" },
-                { label: "GitHub", icon: "⌥" },
-                { label: "Phantom", icon: "◎" },
-              ].map(({ label, icon }) => (
-                <div key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
-                  <span className="font-mono">{icon}</span>
-                  {label}
-                </div>
-              ))}
+            <div className="flex items-center justify-center gap-2 text-[11px] text-muted-foreground/70">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Phantom wallet authentication
             </div>
           </div>
         </div>
 
         <p className="text-center text-[12px] text-muted-foreground mt-6">
           Don't have an account?{" "}
-          <a href="/#waitlist" className="text-accent/80 hover:text-accent transition-colors">Request access →</a>
+          <a href="/#waitlist" className="text-accent/80 hover:text-accent transition-colors">
+            Request access →
+          </a>
         </p>
       </div>
     </div>

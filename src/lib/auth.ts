@@ -25,46 +25,16 @@ export function clearUser(): void {
   localStorage.removeItem(KEY);
 }
 
-export function buildUserFromPrivy(privyUser: {
-  id: string;
-  email?: { address: string } | null;
-  google?: { email: string; name?: string } | null;
-  github?: { email?: string; name?: string } | null;
-  wallet?: { address: string } | null;
-}): User {
-  const email =
-    privyUser.email?.address ??
-    privyUser.google?.email ??
-    privyUser.github?.email ??
-    "";
-  const googleName = privyUser.google?.name;
-  const githubName = privyUser.github?.name;
-  const walletAddr = privyUser.wallet?.address;
-
-  let name = googleName ?? githubName ?? "";
-  if (!name && email) {
-    name = email
-      .split("@")[0]
-      .replace(/[._-]/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  }
-  if (!name && walletAddr) {
-    name = `${walletAddr.slice(0, 4)}…${walletAddr.slice(-4)}`;
-  }
-  if (!name) name = "Astro User";
-
-  const workspaceBase = email
-    ? email.split("@")[0]
-    : walletAddr
-    ? walletAddr.slice(0, 8)
-    : "workspace";
+export function buildUserFromWallet(address: string): User {
+  const shortAddress = `${address.slice(0, 4)}…${address.slice(-4)}`;
+  const name = `Phantom ${shortAddress}`;
 
   return {
-    id: privyUser.id,
+    id: `phantom:${address}`,
     name,
-    email: email || (walletAddr ? walletAddr : ""),
-    workspace: `${workspaceBase}-workspace`,
-    avatar: name.slice(0, 2).toUpperCase(),
+    email: address,
+    workspace: `${address.slice(0, 8)}-workspace`,
+    avatar: "◎",
   };
 }
 
